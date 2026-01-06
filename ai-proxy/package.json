@@ -1,0 +1,16 @@
+{
+  "name": "tallererp-ai-proxy",
+  "version": "1.0.0",
+  "description": "AI Proxy service for TallerERP",
+  "main": "index.js",
+  "scripts": {
+    "dev": "bun run --watch src/index.js",
+    "start": "bun run src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}
+

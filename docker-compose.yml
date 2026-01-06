@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: tallererp-postgres
+    environment:
+      POSTGRES_DB: tallererp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tallererp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service (Spring Boot)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tallererp-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tallererp-network
+    restart: unless-stopped
+
+  # Frontend Service (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tallererp-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - tallererp-network
+    restart: unless-stopped
+
+  # AI Proxy Service (Bun)
+  ai-proxy:
+    build:
+      context: ./ai-proxy
+      dockerfile: Dockerfile
+    container_name: tallererp-ai-proxy
+    ports:
+      - "3001:3001"
+    networks:
+      - tallererp-network
+    restart: unless-stopped
+
+networks:
+  tallererp-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
